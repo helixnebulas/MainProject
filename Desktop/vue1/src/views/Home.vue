@@ -27,7 +27,7 @@ export default {
 
   data() {
     return{
-    titles: Object.values(ITEMS)
+    titles: Object.values(ITEMS),
   }
   }
 }

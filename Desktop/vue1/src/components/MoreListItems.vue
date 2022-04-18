@@ -4,7 +4,7 @@
       <h1>
         <strong>
           {{ getitem.title }}:
-          <div>{{ getitem.percent }}%</div>
+          <div>{{ average.toFixed([2]) }}%</div>
         </strong>
       </h1>
     </div>
@@ -19,12 +19,11 @@
     </form>
     <ul class="list-group p-4 align-items-center">
       <li id="fondli">
-        <div id="fondname">Название</div>
+        <button type="button" class="btn btn-dark"><label id="fondname"><input type="checkbox" style="display: none" v-model="checkedTitle">Название &#129047;</label></button>
         <div id="remove">
-          <input type="checkbox" name="remove-full" value="100%" @click="filterFull">
-          <label for="remove-full">Убрать 100%</label>
+          <label for="remove-full"><input type="checkbox" name="remove-full" value="100%" v-model="checkedFull">Убрать заполненные</label>
         </div>
-        <span id="fondper"> Статус </span>
+        <button type="button" class="btn btn-dark"><label id="fondper"><input type="checkbox" style="display: none" v-model="checkedPer">Статус &#129047;</label></button>
       </li>
       <MoreItem v-for="a of (filteredItems)" v-bind:a="a" :key="a.id" />
     </ul>
@@ -34,6 +33,7 @@
 <script>
 import MoreItem from "@/components/MoreItem";
 import { ITEMS } from "@/consts";
+import _ from "lodash";
 export default {
   props: ["item"],
   components: {
@@ -43,31 +43,41 @@ export default {
     return {
       searchInput: "",
       listItems: null,
+      checkedFull: false,
+      checkedPer: false,
+      checkedTitle: false,
     };
   },
   methods: {
     searching(event) {
       event.preventDefault();
     },
-    
-    filterFull(event) {
-      if(event.target.checked) {
-        this.listItems = this.items.filter(el => Number.parseInt(el.percent) < 100);
-      } else {
-        this.listItems = null;
-      }
-}
+    sortBySize() {
+      this.checkedPer = !this.checkedPer;
+    }
   },
   computed: {
     type() {
       return this.$route.query.type;
     },
     filteredItems() {
-      if (this.searchInput != "") {
-      return  this.items.filter(el => el.title.toLowerCase().includes(this.searchInput.toLowerCase()));;
-      } else {
-        return this.items;
+      console.log(this.items);
+      let preFiltered = [...this.items];
+      if(this.checkedPer) {
+        preFiltered = _.sortBy(preFiltered, a => Number.parseInt(a.percent));
+      } else if(this.checkedTitle) {
+        preFiltered = _.sortBy(preFiltered, a => a.title);
       }
+      else {
+        preFiltered = this.items;
+      }
+      if (this.searchInput != "") {
+        preFiltered = preFiltered.filter(el => el.title.toLowerCase().includes(this.searchInput.toLowerCase()));;
+      }
+      if(this.checkedFull) {
+        preFiltered = preFiltered.filter(el => isNaN(Number.parseInt(el.percent)) ? (el.percent).toString() != "да" : Number.parseInt(el.percent) < 100);
+      }
+      return preFiltered;
     },
     getitem() {
       return ITEMS[this.type];
@@ -75,29 +85,28 @@ export default {
     title() {
       return this.getitem.title;
     },
+    average() {
+    // return this.items.reduce((a, b) => {
+    //     let left = a.percent || a;
+    //     let right = b.percent || b;
+    //     if(left === "да") left = 100;
+    //     else if(left === "нет") left = 0;
+    //     if(right === "да") right = 100;
+    //     else if(right === "нет") right = 0;
+    //     return Number.parseInt(left) + Number.parseInt(right);
+    //   }, 0) / this.items.length;
+      // return _.meanBy(this.items, a => {
+      //   let left = a.percent || a;
+      //     if(left === "да") 
+      //       left = 100;
+      //     else if(left === "нет") 
+      //       left = 0;
+      //     return Number.parseInt(left)
+      // })
+      return this.$store.getters.averageValues[this.type];
+    },
     items() {
-      if (this.getitem.type == 1) {
-        return [
-          { id: 1, title: "А105", percent: "55%" },
-          { id: 2, title: "Б212", percent: "24%" },
-          { id: 3, title: "И304", percent: "15%" },
-          { id: 4, title: "В02", percent: "55%" },
-          { id: 5, title: "А203", percent: "24%" },
-          { id: 6, title: "Г220", percent: "100%" },
-        ];
-      } else if (this.getitem.type == 2) {
-        return [
-          { id: 1, title: "ИСМБ-18-1", percent: "да" },
-          { id: 2, title: "ВАОА-12", percent: "нет" },
-          { id: 3, title: "АВЫВ-1", percent: "да" },
-        ];
-      } else {
-        return [
-          { id: 1, title: "ИСМБ-18-1", percent: "да" },
-          { id: 2, title: "ВАОА-12", percent: "нет" },
-          { id: 3, title: "АВЫВ-1", percent: "да" },
-        ];
-      }
+      return this.$store.state.items[this.type];
     },
   },
 };
@@ -114,8 +123,14 @@ ul {
 #fondname {
   font-weight: bold;
 }
+#fondname:hover {
+  text-decoration: underline; 
+}
 #fondper {
   font-weight: bold;
+}
+#fondper:hover {
+  text-decoration: underline; 
 }
 li {
   display: flex;

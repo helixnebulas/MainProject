@@ -1,11 +1,10 @@
 <template>
     <li id="ttl" class="list-group-item d-flex justify-content-between align-items-start">
         <div id="ttltext">
-            {{t}}
         {{ t.title }}
         </div>
-        <span id="per">
-        {{ t.percent }}%
+        <span id="per" :style="mystyle">
+        {{ average }}%
         &#9679;	
         </span>
         <router-link tag="button" class="btn btn-dark"  
@@ -14,6 +13,7 @@
 </template>
 
 <script>
+import chroma from 'chroma-js';
 export default {
     props: {
         t: {
@@ -29,6 +29,23 @@ export default {
     },
     beforeUnmount() {
        
+    },
+    data() {
+    return {
+    color: chroma.scale(['red', 'lightgreen'])
+  }
+  },
+   computed: {
+        mystyle() {
+            let clr = null; 
+            clr = (this.color)(Number.parseInt(this.t.percent) / 100.0).hex();
+            return {
+                color: clr
+            }
+        },
+        average() {
+      return this.$store.getters.averageValues[this.type];
+    },
     }
 }
 </script>
