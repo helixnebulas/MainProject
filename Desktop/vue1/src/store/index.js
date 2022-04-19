@@ -43,7 +43,7 @@ export default createStore({
       }).fromPairs().value();
     },
     totalAverage(state, getters) {
-        let tAvg = _(getters.averageValues).values().mean();
+        let tAvg = _(getters.averageValues).values().mean().toFixed([2]);
         return tAvg;
     }
   },

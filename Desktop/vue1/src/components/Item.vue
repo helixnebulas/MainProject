@@ -4,7 +4,7 @@
         {{ t.title }}
         </div>
         <span id="per" :style="mystyle">
-        {{ average }}%
+        {{ average.toFixed([2]) }}%
         &#9679;	
         </span>
         <router-link tag="button" class="btn btn-dark"  
@@ -44,7 +44,7 @@ export default {
             }
         },
         average() {
-      return this.$store.getters.averageValues[this.type];
+      return this.$store.getters.averageValues[this.$props.t.type];
     },
     }
 }

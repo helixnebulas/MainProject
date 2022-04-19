@@ -4,7 +4,7 @@
       <h1>
         <strong>
           {{ getitem.title }}:
-          <div>{{ average.toFixed([2]) }}%</div>
+          <div>{{ average.toFixed([2])}}%</div>
         </strong>
       </h1>
     </div>
@@ -19,11 +19,11 @@
     </form>
     <ul class="list-group p-4 align-items-center">
       <li id="fondli">
-        <button type="button" class="btn btn-dark"><label id="fondname"><input type="checkbox" style="display: none" v-model="checkedTitle">Название &#129047;</label></button>
+          <label id="fondname"><input type="checkbox" style="display: none" v-model="checkedTitle">Название &#129047;</label>
         <div id="remove">
           <label for="remove-full"><input type="checkbox" name="remove-full" value="100%" v-model="checkedFull">Убрать заполненные</label>
         </div>
-        <button type="button" class="btn btn-dark"><label id="fondper"><input type="checkbox" style="display: none" v-model="checkedPer">Статус &#129047;</label></button>
+        <label id="fondper"><input type="checkbox" @click="sortBySize" style="display: none">Статус &#129047;</label>
       </li>
       <MoreItem v-for="a of (filteredItems)" v-bind:a="a" :key="a.id" />
     </ul>
@@ -44,7 +44,7 @@ export default {
       searchInput: "",
       listItems: null,
       checkedFull: false,
-      checkedPer: false,
+      checkedPer: 0,
       checkedTitle: false,
     };
   },
@@ -53,7 +53,8 @@ export default {
       event.preventDefault();
     },
     sortBySize() {
-      this.checkedPer = !this.checkedPer;
+      this.checkedPer = this.checkedPer + 1;
+      if(this.checkedPer > 2) this.checkedPer = 0;
     }
   },
   computed: {
@@ -61,15 +62,19 @@ export default {
       return this.$route.query.type;
     },
     filteredItems() {
-      console.log(this.items);
+            console.log(this.items);
       let preFiltered = [...this.items];
-      if(this.checkedPer) {
+			if(this.checkedPer == 0) {
+        preFiltered = [...this.items];
+			} else if(this.checkedPer == 1) {
         preFiltered = _.sortBy(preFiltered, a => Number.parseInt(a.percent));
-      } else if(this.checkedTitle) {
-        preFiltered = _.sortBy(preFiltered, a => a.title);
+				console.log(preFiltered);
+      } else if(this.checkedPer == 2) {
+        preFiltered = _.reverse(_.sortBy(preFiltered, a => Number.parseInt(a.percent)));
+				console.log(preFiltered);
       }
-      else {
-        preFiltered = this.items;
+      if(this.checkedTitle) {
+        preFiltered = _.sortBy(preFiltered, a => a.title);
       }
       if (this.searchInput != "") {
         preFiltered = preFiltered.filter(el => el.title.toLowerCase().includes(this.searchInput.toLowerCase()));;
